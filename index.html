@@ -243,7 +243,7 @@ const L = {
    q_doms:"Dolore muscolare?", doms_lo:"fortissimo", doms_hi:"nessuno",
    q_stress:"Quanto sei stressato?", stress_lo:"moltissimo", stress_hi:"per niente",
    q_umore:"Qual è il tuo umore?", umore_lo:"pessimo", umore_hi:"ottimo",
-   q_medico:"Ti serve una valutazione dello staff medico?", no:"No", si:"Sì",
+   q_medico:"Serve una valutazione da parte dello staff medico?", no:"No", si:"Sì",
    zona:"Zona del corpo", zona_ph:"Es. flessore destro",
    invia:"INVIA", inviando:"Invio...", err_completa:"Completa tutte le domande.",
    err_rete:"Rete assente: riprova.", err_reg:"Errore di registrazione, riprova.",
@@ -281,6 +281,21 @@ const L = {
    modifica:"Antworten ändern", nt_h:"Du brauchst deinen persönlichen Link",
    nt_p:"Öffne die App über deinen QR-Code oder Link vom Staff.",
    attesa:"Einen Moment...", sonno_txt:"Schlaf", di:"" },
+ fr: { ciao:"Salut", q_sonno:"Comment as-tu dormi ?", sonno_lo:"très mal", sonno_hi:"très bien",
+   q_orari:"Horaires de sommeil", inizio:"Coucher", fine:"Réveil",
+   q_energia:"Énergie au réveil ?", energia_lo:"aucune", energia_hi:"maximale",
+   q_fatica:"À quel point es-tu fatigué ?", fatica_lo:"épuisé", fatica_hi:"frais",
+   q_doms:"Douleurs musculaires ?", doms_lo:"très fortes", doms_hi:"aucune",
+   q_stress:"À quel point es-tu stressé ?", stress_lo:"énormément", stress_hi:"pas du tout",
+   q_umore:"Quelle est ton humeur ?", umore_lo:"très mauvaise", umore_hi:"excellente",
+   q_medico:"As-tu besoin d'une évaluation du staff médical ?", no:"Non", si:"Oui",
+   zona:"Zone du corps", zona_ph:"Ex. ischio droit",
+   invia:"ENVOYER", inviando:"Envoi...", err_completa:"Réponds à toutes les questions.",
+   err_rete:"Pas de réseau : réessaie.", err_reg:"Erreur d'enregistrement, réessaie.",
+   ok_h:"Envoyée !", ok_p:"Wellness du jour enregistrée. Bon entraînement !",
+   modifica:"Modifier les réponses", nt_h:"Il te faut ton lien personnel",
+   nt_p:"Ouvre l'app avec ton QR code ou le lien donné par le staff.",
+   attesa:"Un instant...", sonno_txt:"de sommeil", di:"de" },
  es: { ciao:"Hola", q_sonno:"¿Cómo has dormido?", sonno_lo:"muy mal", sonno_hi:"muy bien",
    q_orari:"Horario de sueño", inizio:"Acostarse", fine:"Despertar",
    q_energia:"¿Energía al despertar?", energia_lo:"ninguna", energia_hi:"máxima",
@@ -297,7 +312,7 @@ const L = {
    nt_p:"Abre la app con tu código QR o el enlace del staff.",
    attesa:"Un momento...", sonno_txt:"de sueño", di:"de" }
 };
-const LINGUE = ["it", "en", "de", "es"];
+const LINGUE = ["it", "en", "fr", "de", "es"];
 let lang = localStorage.getItem("wf_lang") ||
            (LINGUE.includes(navigator.language.slice(0, 2)) ? navigator.language.slice(0, 2) : "en");
 const T = k => (L[lang] && L[lang][k]) || L.en[k] || "";
@@ -327,7 +342,7 @@ function applicaLingua() {
   const nome = localStorage.getItem("wf_nome");
   if (nome) $("saluto").textContent = T("ciao") + " " + nome + " \u{1F44B}";
   $("dataoggi").textContent = new Date().toLocaleDateString(
-    { it: "it-IT", en: "en-GB", de: "de-DE", es: "es-ES" }[lang],
+    { it: "it-IT", en: "en-GB", fr: "fr-FR", de: "de-DE", es: "es-ES" }[lang],
     { weekday: "long", day: "numeric", month: "long" });
   durata(); progresso();
 }
