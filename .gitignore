@@ -1,6 +1,8 @@
 # SOLO il sito va su GitHub (repo pubblico): il resto e' materiale interno
+config_pwa.R
+genera_token.R
+genera_qr.R
+apps_script.gs
 giocatori_token.csv
 output/
-apps_script.gs
-genera_qr.R
 SETUP_PWA.*

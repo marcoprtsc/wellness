@@ -244,15 +244,14 @@ function avvia() {
   if (!ID) { mostra("no-token"); return; }
 
   const nomeCache = localStorage.getItem("wf_nome");
-  if (nomeCache) { pronto(nomeCache, localStorage.getItem("wf_email") || ""); }
+  if (nomeCache) { pronto(nomeCache); }
   else mostra("attesa");
 
   jsonp(new URLSearchParams({ token: WEBHOOK_TOKEN, a: "chi", id: ID }),
     r => {
       if (r && r.ok) {
         localStorage.setItem("wf_nome", r.cognome);
-        localStorage.setItem("wf_email", r.email || "");
-        if (!nomeCache) pronto(r.cognome, r.email || "");
+        if (!nomeCache) pronto(r.cognome);
         else $("saluto").textContent = "Ciao " + r.cognome + " \u{1F44B}";
       } else if (!nomeCache) {
         localStorage.removeItem("wf_id"); mostra("no-token");
@@ -260,11 +259,11 @@ function avvia() {
     },
     () => { if (!nomeCache) mostra("no-token"); });
 }
-function pronto(cognome, email) {
+function pronto(cognome) {
   $("saluto").textContent = "Ciao " + cognome + " \u{1F44B}";
   $("dataoggi").textContent = new Date().toLocaleDateString("it-IT",
     { weekday: "long", day: "numeric", month: "long" });
-  if (email) avviaPush(email);
+  avviaPush(cognome);
   if (localStorage.getItem("wf_last") === new Date().toDateString()) mostra("fatto");
   else mostra("form");
 }
@@ -352,8 +351,8 @@ $("invia").onclick = () => {
 };
 $("rifai").onclick = () => { mostra("form"); scrollTo(0, 0); };
 
-/* ---- OneSignal ---- */
-function avviaPush(email) {
+/* ---- OneSignal (external_id = cognome: e' cosi' che il NAS mira i ritardatari) ---- */
+function avviaPush(cognome) {
   if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID.startsWith("INCOLLA")) return;
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async OneSignal => {
@@ -363,7 +362,7 @@ function avviaPush(email) {
         serviceWorkerPath: "OneSignalSDKWorker.js",
         serviceWorkerParam: { scope: "/wellness/" }
       });
-      await OneSignal.login(email);
+      await OneSignal.login(cognome);
       OneSignal.Notifications.requestPermission();
     } catch (e) { /* push non disponibile: l'app funziona comunque */ }
   });
