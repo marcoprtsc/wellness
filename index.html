@@ -224,17 +224,15 @@ function mostra(v) {
     $(x).style.display = x === v ? (x === "form" ? "block" : "block") : "none");
 }
 
-/* ---- jsonp helper ---- */
-let njsonp = 0;
+/* ---- chiamata al webhook (JSON + CORS; Apps Script risponde con ACAO *) ---- */
 function jsonp(params, onOk, onErr, timeoutMs) {
-  const cb = "wfcb" + (++njsonp);
-  const s = document.createElement("script");
-  const timer = setTimeout(() => { s.remove(); onErr("timeout"); }, timeoutMs || 20000);
-  window[cb] = r => { clearTimeout(timer); s.remove(); delete window[cb]; onOk(r); };
-  s.onerror = () => { clearTimeout(timer); s.remove(); onErr("rete"); };
-  params.set("cb", cb);
-  s.src = WEBHOOK_URL + "?" + params.toString();
-  document.body.appendChild(s);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs || 20000);
+  fetch(WEBHOOK_URL + "?" + params.toString(), { signal: ctrl.signal })
+    .then(r => r.json())
+    .then(r => { clearTimeout(timer); onOk(r); })
+    .catch(e => { clearTimeout(timer);
+      onErr(e && e.name === "AbortError" ? "timeout" : String(e)); });
 }
 
 /* ---- identita' dal token ---- */
