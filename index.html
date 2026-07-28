@@ -484,6 +484,10 @@ $("invia").onclick = () => {
         localStorage.setItem("wf_last", new Date().toDateString());
         localStorage.setItem("wf_t_inizio", $("t-inizio").value);
         localStorage.setItem("wf_t_fine", $("t-fine").value);
+        // risposte del giorno: se riapre oggi le ritrova selezionate
+        localStorage.setItem("wf_ans", JSON.stringify({
+          d: new Date().toDateString(), r: risposte, f: fisio,
+          z: $("t-zona").value.trim() }));
         $("fatto-ora").textContent = new Date().toLocaleString("it-IT");
         mostra("fatto"); scrollTo(0, 0);
       } else {
@@ -514,6 +518,19 @@ function avviaPush(cognome) {
     } catch (e) { /* push non disponibile: l'app funziona comunque */ }
   });
 }
+
+/* ---- se oggi ha gia' inviato, ripropongo le risposte selezionate ---- */
+(function ripristina() {
+  let a; try { a = JSON.parse(localStorage.getItem("wf_ans")); } catch (e) { return; }
+  if (!a || a.d !== new Date().toDateString()) return;
+  document.querySelectorAll(".card[data-k]").forEach(card => {
+    const v = a.r && a.r[card.dataset.k];
+    const b = v && card.querySelectorAll(".scala button")[v - 1];
+    if (b) b.onclick();
+  });
+  if (a.f === "No") $("f-no").onclick();
+  else if (a.f) { $("f-si").onclick(); $("t-zona").value = a.z || ""; }
+})();
 
 applicaLingua();
 avvia();
