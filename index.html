@@ -510,7 +510,7 @@ function avviaPush(cognome) {
     try {
       await OneSignal.init({
         appId: ONESIGNAL_APP_ID,
-        serviceWorkerPath: "OneSignalSDKWorker.js",
+        serviceWorkerPath: "/wellness/OneSignalSDKWorker.js",
         serviceWorkerParam: { scope: "/wellness/" }
       });
       await OneSignal.login(cognome);
