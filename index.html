@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#006937">
+<title>Venezia FC — Wellness</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<style>
+  :root {
+    --verde: #006937; --verde-scuro: #00552d; --arancio: #FF6B00;
+    --nero: #111; --grigio: #f4f4f1; --bordo: #e3e3df;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--grigio); color: var(--nero); padding-bottom: 46px;
+  }
+  header {
+    background: linear-gradient(160deg, var(--verde) 0%, var(--verde-scuro) 100%);
+    color: #fff; text-align: center;
+    padding: 12px 16px calc(16px + env(safe-area-inset-top)) 16px;
+    border-radius: 0 0 22px 22px;
+  }
+  header img { height: 50px; }
+  header h1 { font-size: .95rem; font-weight: 600; letter-spacing: 1px; margin-top: 4px; }
+  #saluto { font-size: 1.25rem; font-weight: 700; margin-top: 8px; }
+  #dataoggi { font-size: .8rem; opacity: .85; margin-top: 2px; }
+  main { max-width: 480px; margin: 0 auto; padding: 14px; }
+  .card {
+    background: #fff; border-radius: 16px; padding: 16px;
+    margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  }
+  .card.ok-bordo { outline: 2px solid #bfe3cd; }
+  .q { font-weight: 700; font-size: 1rem; }
+  .q-en { color: #888; font-size: .78rem; margin: 2px 0 12px 0; }
+  .scala { display: flex; gap: 7px; }
+  .scala button {
+    flex: 1; padding: 8px 0 6px 0; border: 1.5px solid var(--bordo);
+    border-radius: 14px; background: #fff; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    transition: transform .08s;
+  }
+  .scala button:active { transform: scale(.93); }
+  .scala .faccia { font-size: 1.55rem; line-height: 1.2;
+    filter: grayscale(1) opacity(.55); }
+  .scala .num { font-size: .72rem; color: #999; font-weight: 600; }
+  .scala button.sel { background: #eaf6ef; border-color: var(--verde); }
+  .scala button.sel .faccia { filter: none; }
+  .scala button.sel .num { color: var(--verde); }
+  .estremi { display: flex; justify-content: space-between; font-size: .7rem; color: #999; margin-top: 7px; }
+  .due { display: flex; gap: 10px; }
+  .due > div { flex: 1; }
+  label.mini { font-size: .78rem; color: #666; display: block; margin-bottom: 5px; font-weight: 600; }
+  input[type=time], input[type=text] {
+    width: 100%; padding: 12px 10px; font-size: 1.05rem;
+    border: 1.5px solid var(--bordo); border-radius: 12px; background: #fff;
+  }
+  .sino { display: flex; gap: 8px; }
+  .sino button {
+    flex: 1; padding: 14px 0; font-weight: 700; font-size: 1rem;
+    border: 1.5px solid var(--bordo); border-radius: 14px; background: #fff; cursor: pointer;
+  }
+  .sino button.sel-no { background: #eaf6ef; border-color: var(--verde); color: var(--verde); }
+  .sino button.sel-si { background: #fff1e6; border-color: var(--arancio); color: var(--arancio); }
+  #barra {
+    position: sticky; top: 0; z-index: 5; background: var(--grigio);
+    padding: 8px 2px; font-size: .78rem; color: #777; font-weight: 600;
+  }
+  #barra .traccia { height: 6px; background: #e2e2de; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+  #barra .pieno { height: 100%; width: 0%; background: var(--arancio); border-radius: 3px; transition: width .25s; }
+  #invia {
+    width: 100%; padding: 17px; font-size: 1.15rem; font-weight: 800; letter-spacing: .5px;
+    background: var(--arancio); color: #fff; border: 0; border-radius: 16px; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(255,107,0,.35);
+  }
+  #invia:disabled { opacity: .55; box-shadow: none; }
+  .msg { text-align: center; padding: 12px; border-radius: 12px; margin-top: 10px; font-weight: 600; display: none; }
+  .msg.ok  { background: #e3f2e8; color: var(--verde); display: block; }
+  .msg.err { background: #fde8e8; color: #b3261e; display: block; }
+  .schermo { text-align: center; padding: 46px 24px; display: none; }
+  .schermo .big { font-size: 4rem; }
+  .schermo h2 { margin: 12px 0 8px 0; }
+  .schermo p { color: #666; font-size: .92rem; line-height: 1.45; }
+  .schermo button {
+    margin-top: 20px; padding: 12px 26px; border: 1.5px solid var(--verde);
+    background: #fff; color: var(--verde); border-radius: 12px; font-weight: 700; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="icon-192.png" alt="Venezia FC">
+  <h1>DAILY WELLNESS</h1>
+  <div id="saluto"></div>
+  <div id="dataoggi"></div>
+</header>
+
+<main>
+
+  <!-- senza token / token non valido -->
+  <div id="no-token" class="schermo card">
+    <div class="big">&#128273;</div>
+    <h2>Serve il tuo link personale</h2>
+    <p>Apri l'app dal QR code o dal link che ti ha dato lo staff.<br>
+       Please open the app from your personal QR code or link.</p>
+  </div>
+
+  <!-- caricamento identita' -->
+  <div id="attesa" class="schermo card">
+    <div class="big">&#9203;</div>
+    <p>Un attimo... / One moment...</p>
+  </div>
+
+  <!-- form giornaliero -->
+  <div id="form" style="display:none">
+    <div id="barra"><span id="conta">0 di 9</span>
+      <div class="traccia"><div class="pieno" id="pieno"></div></div>
+    </div>
+
+    <div class="card" data-k="sonno">
+      <div class="q">&#128564; Come hai dormito?</div>
+      <div class="q-en">How did you sleep?</div>
+      <div class="scala"></div>
+      <div class="estremi"><span>malissimo / very badly</span><span>benissimo / very well</span></div>
+    </div>
+
+    <div class="card" id="card-orari">
+      <div class="q">&#8986; Orari del sonno</div>
+      <div class="q-en">Sleep start &amp; end time</div>
+      <div class="due">
+        <div><label class="mini">Inizio / Start</label><input type="time" id="t-inizio"></div>
+        <div><label class="mini">Fine / End</label><input type="time" id="t-fine"></div>
+      </div>
+    </div>
+
+    <div class="card" data-k="energia">
+      <div class="q">&#9889; Energia al risveglio?</div>
+      <div class="q-en">Energy level on waking?</div>
+      <div class="scala"></div>
+      <div class="estremi"><span>nessuna / none</span><span>massima / full</span></div>
+    </div>
+
+    <div class="card" data-k="fatica">
+      <div class="q">&#127939; Quanto sei stanco?</div>
+      <div class="q-en">How fatigued are you?</div>
+      <div class="scala"></div>
+      <div class="estremi"><span>distrutto / exhausted</span><span>fresco / fresh</span></div>
+    </div>
+
+    <div class="card" data-k="doms">
+      <div class="q">&#128170; Dolore muscolare?</div>
+      <div class="q-en">How sore are you?</div>
+      <div class="scala"></div>
+      <div class="estremi"><span>fortissimo / very sore</span><span>nessuno / none</span></div>
+    </div>
+
+    <div class="card" data-k="stress">
+      <div class="q">&#127744; Quanto sei stressato?</div>
+      <div class="q-en">How stressed do you feel?</div>
+      <div class="scala"></div>
+      <div class="estremi"><span>moltissimo / very stressed</span><span>per niente / not at all</span></div>
+    </div>
+
+    <div class="card" data-k="umore">
+      <div class="q">&#127773; Qual è il tuo umore?</div>
+      <div class="q-en">What's your mood?</div>
+      <div class="scala"></div>
+      <div class="estremi"><span>pessimo / very low</span><span>ottimo / great</span></div>
+    </div>
+
+    <div class="card">
+      <div class="q">&#129658; Ti serve lo staff medico?</div>
+      <div class="q-en">Do you require an evaluation by the medical staff?</div>
+      <div class="sino">
+        <button id="f-no" type="button">No</button>
+        <button id="f-si" type="button">S&igrave; / Yes</button>
+      </div>
+      <div id="zona-box" style="display:none;margin-top:12px">
+        <label class="mini">Zona del corpo / Body area</label>
+        <input type="text" id="t-zona" placeholder="Es. flessore destro / right hamstring">
+      </div>
+    </div>
+
+    <button id="invia">INVIA / SUBMIT</button>
+    <div id="f-msg" class="msg"></div>
+  </div>
+
+  <!-- conferma -->
+  <div id="fatto" class="schermo card">
+    <div class="big" style="color:var(--verde)">&#9989;</div>
+    <h2>Inviata!</h2>
+    <p>Wellness di oggi registrata. Buon allenamento!<br>
+       Today's wellness has been recorded.</p>
+    <p id="fatto-ora" style="margin-top:8px;font-size:.78rem;color:#aaa"></p>
+    <button id="rifai">Modifica risposte / Edit answers</button>
+  </div>
+
+</main>
+
+<script>
+/* ============================================================
+   CONFIGURAZIONE — da compilare dopo il deploy (vedi SETUP_PWA.md)
+   ============================================================ */
+const WEBHOOK_URL      = "INCOLLA_QUI_URL_APPS_SCRIPT";   // finisce con /exec
+const WEBHOOK_TOKEN    = "veneziafc2627";                  // deve combaciare con Apps Script
+const ONESIGNAL_APP_ID = "INCOLLA_QUI_APP_ID_ONESIGNAL";
+
+/* ============================================================ */
+const $ = id => document.getElementById(id);
+const FACCE = ["\u{1F616}", "\u{1F641}", "\u{1F610}", "\u{1F642}", "\u{1F603}"];
+const risposte = {};
+let fisio = null;
+let ID = null;            // token personale del giocatore
+
+/* ---- viste ---- */
+function mostra(v) {
+  ["no-token", "attesa", "form", "fatto"].forEach(x =>
+    $(x).style.display = x === v ? (x === "form" ? "block" : "block") : "none");
+}
+
+/* ---- jsonp helper ---- */
+let njsonp = 0;
+function jsonp(params, onOk, onErr, timeoutMs) {
+  const cb = "wfcb" + (++njsonp);
+  const s = document.createElement("script");
+  const timer = setTimeout(() => { s.remove(); onErr("timeout"); }, timeoutMs || 20000);
+  window[cb] = r => { clearTimeout(timer); s.remove(); delete window[cb]; onOk(r); };
+  s.onerror = () => { clearTimeout(timer); s.remove(); onErr("rete"); };
+  params.set("cb", cb);
+  s.src = WEBHOOK_URL + "?" + params.toString();
+  document.body.appendChild(s);
+}
+
+/* ---- identita' dal token ---- */
+function avvia() {
+  const urlId = new URLSearchParams(location.search).get("id");
+  if (urlId) localStorage.setItem("wf_id", urlId);
+  ID = localStorage.getItem("wf_id");
+  if (!ID) { mostra("no-token"); return; }
+
+  const nomeCache = localStorage.getItem("wf_nome");
+  if (nomeCache) { pronto(nomeCache, localStorage.getItem("wf_email") || ""); }
+  else mostra("attesa");
+
+  jsonp(new URLSearchParams({ token: WEBHOOK_TOKEN, a: "chi", id: ID }),
+    r => {
+      if (r && r.ok) {
+        localStorage.setItem("wf_nome", r.cognome);
+        localStorage.setItem("wf_email", r.email || "");
+        if (!nomeCache) pronto(r.cognome, r.email || "");
+        else $("saluto").textContent = "Ciao " + r.cognome + " \u{1F44B}";
+      } else if (!nomeCache) {
+        localStorage.removeItem("wf_id"); mostra("no-token");
+      }
+    },
+    () => { if (!nomeCache) mostra("no-token"); });
+}
+function pronto(cognome, email) {
+  $("saluto").textContent = "Ciao " + cognome + " \u{1F44B}";
+  $("dataoggi").textContent = new Date().toLocaleDateString("it-IT",
+    { weekday: "long", day: "numeric", month: "long" });
+  if (email) avviaPush(email);
+  if (localStorage.getItem("wf_last") === new Date().toDateString()) mostra("fatto");
+  else mostra("form");
+}
+
+/* ---- scale 1-5 con faccine ---- */
+document.querySelectorAll(".card[data-k]").forEach(card => {
+  const k = card.dataset.k, box = card.querySelector(".scala");
+  for (let v = 1; v <= 5; v++) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = "<span class='faccia'>" + FACCE[v - 1] + "</span><span class='num'>" + v + "</span>";
+    b.onclick = () => {
+      risposte[k] = v;
+      box.querySelectorAll("button").forEach(x => x.classList.remove("sel"));
+      b.classList.add("sel"); card.classList.add("ok-bordo");
+      progresso();
+    };
+    box.appendChild(b);
+  }
+});
+$("t-inizio").onchange = $("t-fine").onchange = () => {
+  if ($("t-inizio").value && $("t-fine").value) $("card-orari").classList.add("ok-bordo");
+  progresso();
+};
+
+/* ---- staff medico ---- */
+$("f-no").onclick = () => { fisio = "No";
+  $("f-no").className = "sel-no"; $("f-si").className = "";
+  $("zona-box").style.display = "none"; progresso(); };
+$("f-si").onclick = () => { fisio = "Si, Yes";
+  $("f-si").className = "sel-si"; $("f-no").className = "";
+  $("zona-box").style.display = "block"; progresso(); };
+
+/* ---- barra di progresso (9 passi: 6 scale + 2 orari + si/no) ---- */
+function progresso() {
+  let n = Object.keys(risposte).length;
+  if ($("t-inizio").value) n++;
+  if ($("t-fine").value) n++;
+  if (fisio) n++;
+  $("conta").textContent = n + " di 9";
+  $("pieno").style.width = (n / 9 * 100) + "%";
+}
+
+/* ---- invio ---- */
+function oraGoogle(hhmm) {
+  if (!hhmm) return "";
+  const [h, m] = hhmm.split(":");
+  return parseInt(h, 10) + "." + m + ".00";
+}
+$("invia").onclick = () => {
+  const msg = $("f-msg");
+  const manca = ["sonno", "energia", "fatica", "doms", "stress", "umore"].filter(k => !risposte[k]);
+  if (manca.length || !fisio || !$("t-inizio").value || !$("t-fine").value) {
+    msg.className = "msg err";
+    msg.textContent = "Completa tutte le domande. / Please answer every question.";
+    return;
+  }
+  msg.className = "msg"; msg.textContent = "";
+  $("invia").disabled = true; $("invia").textContent = "Invio...";
+
+  jsonp(new URLSearchParams({
+      token: WEBHOOK_TOKEN, id: ID,
+      sonno: risposte.sonno, inizio: oraGoogle($("t-inizio").value),
+      fine: oraGoogle($("t-fine").value), stress: risposte.stress,
+      fatica: risposte.fatica, doms: risposte.doms, umore: risposte.umore,
+      energia: risposte.energia, fisio: fisio,
+      regione: fisio === "No" ? "" : $("t-zona").value.trim()
+    }),
+    r => {
+      $("invia").disabled = false; $("invia").textContent = "INVIA / SUBMIT";
+      if (r && r.ok) {
+        localStorage.setItem("wf_last", new Date().toDateString());
+        $("fatto-ora").textContent = new Date().toLocaleString("it-IT");
+        mostra("fatto"); scrollTo(0, 0);
+      } else {
+        msg.className = "msg err";
+        msg.textContent = (r && r.error) ? r.error : "Errore di registrazione, riprova.";
+      }
+    },
+    () => {
+      $("invia").disabled = false; $("invia").textContent = "INVIA / SUBMIT";
+      msg.className = "msg err";
+      msg.textContent = "Rete assente: riprova. / No network, please retry.";
+    });
+};
+$("rifai").onclick = () => { mostra("form"); scrollTo(0, 0); };
+
+/* ---- OneSignal ---- */
+function avviaPush(email) {
+  if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID.startsWith("INCOLLA")) return;
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async OneSignal => {
+    try {
+      await OneSignal.init({
+        appId: ONESIGNAL_APP_ID,
+        serviceWorkerPath: "OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: "/wellness/" }
+      });
+      await OneSignal.login(email);
+      OneSignal.Notifications.requestPermission();
+    } catch (e) { /* push non disponibile: l'app funziona comunque */ }
+  });
+}
+
+avvia();
+</script>
+</body>
+</html>
