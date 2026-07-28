@@ -108,6 +108,7 @@
     <h2>Serve il tuo link personale</h2>
     <p>Apri l'app dal QR code o dal link che ti ha dato lo staff.<br>
        Please open the app from your personal QR code or link.</p>
+    <p id="nt-why" style="margin-top:10px;font-size:.75rem;color:#aaa"></p>
   </div>
 
   <!-- caricamento identita' -->
@@ -241,7 +242,7 @@ function avvia() {
   const urlId = new URLSearchParams(location.search).get("id");
   if (urlId) localStorage.setItem("wf_id", urlId);
   ID = localStorage.getItem("wf_id");
-  if (!ID) { mostra("no-token"); return; }
+  if (!ID) { $("nt-why").textContent = "[nessun id nel link]"; mostra("no-token"); return; }
 
   const nomeCache = localStorage.getItem("wf_nome");
   if (nomeCache) { pronto(nomeCache); }
@@ -254,10 +255,12 @@ function avvia() {
         if (!nomeCache) pronto(r.cognome);
         else $("saluto").textContent = "Ciao " + r.cognome + " \u{1F44B}";
       } else if (!nomeCache) {
-        localStorage.removeItem("wf_id"); mostra("no-token");
+        localStorage.removeItem("wf_id");
+        $("nt-why").textContent = "[" + ((r && r.error) || "token rifiutato") + "]";
+        mostra("no-token");
       }
     },
-    () => { if (!nomeCache) mostra("no-token"); });
+    why => { if (!nomeCache) { $("nt-why").textContent = "[rete: " + why + "]"; mostra("no-token"); } });
 }
 function pronto(cognome) {
   $("saluto").textContent = "Ciao " + cognome + " \u{1F44B}";
