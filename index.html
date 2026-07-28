@@ -139,6 +139,12 @@
       <div class="traccia"><div class="pieno" id="pieno"></div></div>
     </div>
 
+    <div class="card" id="push-card" style="display:none">
+      <div class="q">&#128276; <span data-t="push_t"></span></div>
+      <button id="push-btn" data-t="push_b" type="button"
+        style="width:100%;padding:12px;background:var(--verde);color:#fff;border:0;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer"></button>
+    </div>
+
     <div class="card" data-k="sonno">
       <div class="q">&#128564; <span data-t="q_sonno"></span></div>
       <div class="scala"></div>
@@ -250,7 +256,8 @@ const L = {
    ok_h:"Inviata!", ok_p:"Wellness di oggi registrata. Buon allenamento!",
    modifica:"Modifica risposte", nt_h:"Serve il tuo link personale",
    nt_p:"Apri l'app dal QR code o dal link che ti ha dato lo staff.",
-   attesa:"Un attimo...", sonno_txt:"di sonno", di:"di" },
+   attesa:"Un attimo...", sonno_txt:"di sonno", di:"di",
+   push_t:"Vuoi il promemoria quotidiano?", push_b:"Attiva le notifiche" },
  en: { ciao:"Hi", q_sonno:"How did you sleep?", sonno_lo:"very badly", sonno_hi:"very well",
    q_orari:"Sleep times", inizio:"Bedtime", fine:"Wake up",
    q_energia:"Energy on waking?", energia_lo:"none", energia_hi:"full",
@@ -265,7 +272,8 @@ const L = {
    ok_h:"Sent!", ok_p:"Today's wellness has been recorded. Have a good session!",
    modifica:"Edit answers", nt_h:"You need your personal link",
    nt_p:"Open the app from the QR code or link the staff gave you.",
-   attesa:"One moment...", sonno_txt:"sleep", di:"of" },
+   attesa:"One moment...", sonno_txt:"sleep", di:"of",
+   push_t:"Want the daily reminder?", push_b:"Enable notifications" },
  de: { ciao:"Hallo", q_sonno:"Wie hast du geschlafen?", sonno_lo:"sehr schlecht", sonno_hi:"sehr gut",
    q_orari:"Schlafzeiten", inizio:"Einschlafen", fine:"Aufwachen",
    q_energia:"Energielevel beim Aufwachen?", energia_lo:"keine", energia_hi:"voll",
@@ -280,7 +288,8 @@ const L = {
    ok_h:"Gesendet!", ok_p:"Wellness von heute gespeichert. Gutes Training!",
    modifica:"Antworten ändern", nt_h:"Du brauchst deinen persönlichen Link",
    nt_p:"Öffne die App über deinen QR-Code oder Link vom Staff.",
-   attesa:"Einen Moment...", sonno_txt:"Schlaf", di:"" },
+   attesa:"Einen Moment...", sonno_txt:"Schlaf", di:"",
+   push_t:"Tägliche Erinnerung erhalten?", push_b:"Benachrichtigungen aktivieren" },
  fr: { ciao:"Salut", q_sonno:"Comment as-tu dormi ?", sonno_lo:"très mal", sonno_hi:"très bien",
    q_orari:"Horaires de sommeil", inizio:"Coucher", fine:"Réveil",
    q_energia:"Énergie au réveil ?", energia_lo:"aucune", energia_hi:"maximale",
@@ -295,7 +304,8 @@ const L = {
    ok_h:"Envoyée !", ok_p:"Wellness du jour enregistrée. Bon entraînement !",
    modifica:"Modifier les réponses", nt_h:"Il te faut ton lien personnel",
    nt_p:"Ouvre l'app avec ton QR code ou le lien donné par le staff.",
-   attesa:"Un instant...", sonno_txt:"de sommeil", di:"de" },
+   attesa:"Un instant...", sonno_txt:"de sommeil", di:"de",
+   push_t:"Recevoir le rappel quotidien ?", push_b:"Activer les notifications" },
  es: { ciao:"Hola", q_sonno:"¿Cómo has dormido?", sonno_lo:"muy mal", sonno_hi:"muy bien",
    q_orari:"Horario de sueño", inizio:"Acostarse", fine:"Despertar",
    q_energia:"¿Energía al despertar?", energia_lo:"ninguna", energia_hi:"máxima",
@@ -310,7 +320,8 @@ const L = {
    ok_h:"¡Enviada!", ok_p:"Wellness de hoy registrada. ¡Buen entrenamiento!",
    modifica:"Editar respuestas", nt_h:"Necesitas tu enlace personal",
    nt_p:"Abre la app con tu código QR o el enlace del staff.",
-   attesa:"Un momento...", sonno_txt:"de sueño", di:"de" }
+   attesa:"Un momento...", sonno_txt:"de sueño", di:"de",
+   push_t:"¿Quieres el recordatorio diario?", push_b:"Activar notificaciones" }
 };
 const LINGUE = ["it", "en", "fr", "de", "es"];
 let lang = localStorage.getItem("wf_lang") ||
@@ -514,7 +525,16 @@ function avviaPush(cognome) {
         serviceWorkerParam: { scope: "/wellness/" }
       });
       await OneSignal.login(cognome);
-      OneSignal.Notifications.requestPermission();
+      // il permesso si chiede solo su tocco esplicito (Chrome soffoca le
+      // richieste automatiche al caricamento): card "attiva le notifiche"
+      if ("Notification" in window && Notification.permission === "default") {
+        $("push-card").style.display = "block";
+        $("push-btn").onclick = async () => {
+          await OneSignal.Notifications.requestPermission();
+          if (Notification.permission !== "default")
+            $("push-card").style.display = "none";
+        };
+      }
     } catch (e) { /* push non disponibile: l'app funziona comunque */ }
   });
 }
