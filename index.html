@@ -253,7 +253,7 @@ const L = {
    zona:"Zona del corpo", zona_ph:"Es. flessore destro",
    invia:"INVIA", inviando:"Invio...", err_completa:"Completa tutte le domande.",
    err_rete:"Rete assente: riprova.", err_reg:"Errore di registrazione, riprova.",
-   ok_h:"Inviata!", ok_p:"Wellness di oggi registrata. Buon allenamento!",
+   err_server:"Errore del server: riprova tra poco.", ok_h:"Inviata!", ok_p:"Wellness di oggi registrata. Buon allenamento!",
    modifica:"Modifica risposte", nt_h:"Serve il tuo link personale",
    nt_p:"Apri l'app dal QR code o dal link che ti ha dato lo staff.",
    attesa:"Un attimo...", sonno_txt:"di sonno", di:"di",
@@ -269,7 +269,7 @@ const L = {
    zona:"Body area", zona_ph:"e.g. right hamstring",
    invia:"SUBMIT", inviando:"Sending...", err_completa:"Please answer every question.",
    err_rete:"No network: please retry.", err_reg:"Something went wrong, please retry.",
-   ok_h:"Sent!", ok_p:"Today's wellness has been recorded. Have a good session!",
+   err_server:"Server error: please try again shortly.", ok_h:"Sent!", ok_p:"Today's wellness has been recorded. Have a good session!",
    modifica:"Edit answers", nt_h:"You need your personal link",
    nt_p:"Open the app from the QR code or link the staff gave you.",
    attesa:"One moment...", sonno_txt:"sleep", di:"of",
@@ -285,7 +285,7 @@ const L = {
    zona:"Körperregion", zona_ph:"z.B. rechter Beinbeuger",
    invia:"SENDEN", inviando:"Senden...", err_completa:"Bitte alle Fragen beantworten.",
    err_rete:"Kein Netz: bitte erneut versuchen.", err_reg:"Fehler, bitte erneut versuchen.",
-   ok_h:"Gesendet!", ok_p:"Wellness von heute gespeichert. Gutes Training!",
+   err_server:"Serverfehler: bitte gleich erneut versuchen.", ok_h:"Gesendet!", ok_p:"Wellness von heute gespeichert. Gutes Training!",
    modifica:"Antworten ändern", nt_h:"Du brauchst deinen persönlichen Link",
    nt_p:"Öffne die App über deinen QR-Code oder Link vom Staff.",
    attesa:"Einen Moment...", sonno_txt:"Schlaf", di:"",
@@ -301,7 +301,7 @@ const L = {
    zona:"Zone du corps", zona_ph:"Ex. ischio droit",
    invia:"ENVOYER", inviando:"Envoi...", err_completa:"Réponds à toutes les questions.",
    err_rete:"Pas de réseau : réessaie.", err_reg:"Erreur d'enregistrement, réessaie.",
-   ok_h:"Envoyée !", ok_p:"Wellness du jour enregistrée. Bon entraînement !",
+   err_server:"Erreur du serveur : réessaie dans un instant.", ok_h:"Envoyée !", ok_p:"Wellness du jour enregistrée. Bon entraînement !",
    modifica:"Modifier les réponses", nt_h:"Il te faut ton lien personnel",
    nt_p:"Ouvre l'app avec ton QR code ou le lien donné par le staff.",
    attesa:"Un instant...", sonno_txt:"de sommeil", di:"de",
@@ -317,7 +317,7 @@ const L = {
    zona:"Zona del cuerpo", zona_ph:"Ej. isquio derecho",
    invia:"ENVIAR", inviando:"Enviando...", err_completa:"Responde todas las preguntas.",
    err_rete:"Sin red: reintenta.", err_reg:"Error al registrar, reintenta.",
-   ok_h:"¡Enviada!", ok_p:"Wellness de hoy registrada. ¡Buen entrenamiento!",
+   err_server:"Error del servidor: reintenta en un momento.", ok_h:"¡Enviada!", ok_p:"Wellness de hoy registrada. ¡Buen entrenamiento!",
    modifica:"Editar respuestas", nt_h:"Necesitas tu enlace personal",
    nt_p:"Abre la app con tu código QR o el enlace del staff.",
    attesa:"Un momento...", sonno_txt:"de sueño", di:"de",
@@ -369,10 +369,12 @@ function chiama(params, onOk, onErr, timeoutMs) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs || 20000);
   fetch(WEBHOOK_URL + "?" + params.toString(), { signal: ctrl.signal })
-    .then(r => r.json())
+    .then(r => { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
     .then(r => { clearTimeout(timer); onOk(r); })
     .catch(e => { clearTimeout(timer);
-      onErr(e && e.name === "AbortError" ? "timeout" : String(e)); });
+      const m = String(e && e.message || e);
+      onErr(e && e.name === "AbortError" ? "timeout" :
+            m.startsWith("http") ? m : String(e)); });
 }
 
 /* ---- identita' dal token ---- */
@@ -391,13 +393,17 @@ function avvia() {
         localStorage.setItem("wf_nome", r.cognome);
         if (!nomeCache) pronto(r.cognome);
         else $("saluto").textContent = T("ciao") + " " + r.cognome + " \u{1F44B}";
-      } else if (!nomeCache) {
-        localStorage.removeItem("wf_id");
-        $("nt-why").textContent = "[" + ((r && r.error) || "token rifiutato") + "]";
-        mostra("no-token");
+      } else {
+        // token rifiutato (es. giocatore rimosso): via l'identita' salvata
+        esci((r && r.error) || "token rifiutato");
       }
     },
     why => { if (!nomeCache) { $("nt-why").textContent = "[rete: " + why + "]"; mostra("no-token"); } });
+}
+function esci(motivo) {
+  ["wf_id", "wf_nome", "wf_ans", "wf_last"].forEach(k => localStorage.removeItem(k));
+  $("nt-why").textContent = "[" + motivo + "]";
+  mostra("no-token"); scrollTo(0, 0);
 }
 function pronto(cognome) {
   $("saluto").textContent = T("ciao") + " " + cognome + " \u{1F44B}";
@@ -501,14 +507,17 @@ $("invia").onclick = () => {
           z: $("t-zona").value.trim() }));
         $("fatto-ora").textContent = new Date().toLocaleString("it-IT");
         mostra("fatto"); scrollTo(0, 0);
+      } else if (r && r.error && /non riconosciuto/i.test(r.error)) {
+        esci(r.error);          // giocatore rimosso: identita' cancellata
       } else {
         msg.className = "msg err";
         msg.textContent = (r && r.error) ? r.error : T("err_reg");
       }
     },
-    () => {
+    why => {
       $("invia").disabled = false; $("invia").textContent = T("invia");
-      msg.className = "msg err"; msg.textContent = T("err_rete");
+      msg.className = "msg err";
+      msg.textContent = (why + "").startsWith("http") ? T("err_server") : T("err_rete");
     });
 };
 $("rifai").onclick = () => { mostra("form"); scrollTo(0, 0); };
