@@ -58,6 +58,13 @@
   .scala button.sel .faccia { filter: none; }
   .scala button.sel .num { color: var(--verde); }
   .estremi { display: flex; justify-content: space-between; font-size: .7rem; color: #999; margin-top: 7px; }
+  /* VAS dolore 0-10: grigia finche' non la tocca, cosi' lo 0 non e' una risposta per sbaglio */
+  #vas-val { text-align: center; font-size: 2rem; font-weight: 800; color: #ccc;
+             line-height: 1.1; margin-bottom: 6px; }
+  #vas-val.dato { color: var(--arancio); }
+  #vas-val .tocca { display: block; font-size: .72rem; font-weight: 600; color: #aaa; }
+  #vas-r { width: 100%; margin: 0; accent-color: #ccc; }
+  #vas-r.dato { accent-color: var(--arancio); }
   .due { display: flex; gap: 10px; }
   .due > div { flex: 1; }
   label.mini { font-size: .78rem; color: #666; display: block; margin-bottom: 5px; font-weight: 600; }
@@ -204,6 +211,15 @@
       <div class="estremi"><span data-t="umore_lo"></span><span data-t="umore_hi"></span></div>
     </div>
 
+    <!-- VAS dolore: compare solo se lo staff l'ha accesa per questo giocatore
+         (colonna "vas" della scheda Giocatori) -->
+    <div class="card" id="card-vas" style="display:none">
+      <div class="q">&#129657; <span data-t="q_vas"></span></div>
+      <div id="vas-val">&mdash;</div>
+      <input type="range" id="vas-r" min="0" max="10" step="1" value="0">
+      <div class="estremi"><span data-t="vas_lo"></span><span data-t="vas_hi"></span></div>
+    </div>
+
     <div class="card">
       <div class="q">&#129658; <span data-t="q_medico"></span></div>
       <div class="sino">
@@ -251,6 +267,8 @@ const L = {
    q_umore:"Qual è il tuo umore?", umore_lo:"pessimo", umore_hi:"ottimo",
    q_medico:"Serve una valutazione da parte dello staff medico?", no:"No", si:"Sì",
    zona:"Zona del corpo", zona_ph:"Es. flessore destro",
+   q_vas:"Quanto dolore senti adesso?", vas_lo:"nessun dolore", vas_hi:"dolore massimo",
+   vas_tocca:"tocca il cursore",
    invia:"INVIA", inviando:"Invio...", err_completa:"Completa tutte le domande.",
    err_rete:"Rete assente: riprova.", err_reg:"Errore di registrazione, riprova.",
    err_server:"Errore del server: riprova tra poco.", ok_h:"Inviata!", ok_p:"Wellness di oggi registrata. Buon allenamento!",
@@ -267,6 +285,8 @@ const L = {
    q_umore:"What's your mood?", umore_lo:"very low", umore_hi:"great",
    q_medico:"Do you need an assessment by the medical staff?", no:"No", si:"Yes",
    zona:"Body area", zona_ph:"e.g. right hamstring",
+   q_vas:"How much pain do you feel right now?", vas_lo:"no pain", vas_hi:"worst pain",
+   vas_tocca:"touch the slider",
    invia:"SUBMIT", inviando:"Sending...", err_completa:"Please answer every question.",
    err_rete:"No network: please retry.", err_reg:"Something went wrong, please retry.",
    err_server:"Server error: please try again shortly.", ok_h:"Sent!", ok_p:"Today's wellness has been recorded. Have a good session!",
@@ -283,6 +303,8 @@ const L = {
    q_umore:"Wie ist deine Stimmung?", umore_lo:"sehr schlecht", umore_hi:"sehr gut",
    q_medico:"Brauchst du eine Beurteilung durch das medizinische Personal?", no:"Nein", si:"Ja",
    zona:"Körperregion", zona_ph:"z.B. rechter Beinbeuger",
+   q_vas:"Wie stark sind deine Schmerzen jetzt?", vas_lo:"keine Schmerzen", vas_hi:"stärkste Schmerzen",
+   vas_tocca:"Regler berühren",
    invia:"SENDEN", inviando:"Senden...", err_completa:"Bitte alle Fragen beantworten.",
    err_rete:"Kein Netz: bitte erneut versuchen.", err_reg:"Fehler, bitte erneut versuchen.",
    err_server:"Serverfehler: bitte gleich erneut versuchen.", ok_h:"Gesendet!", ok_p:"Wellness von heute gespeichert. Gutes Training!",
@@ -299,6 +321,8 @@ const L = {
    q_umore:"Quelle est ton humeur ?", umore_lo:"très mauvaise", umore_hi:"excellente",
    q_medico:"As-tu besoin d'une évaluation du staff médical ?", no:"Non", si:"Oui",
    zona:"Zone du corps", zona_ph:"Ex. ischio droit",
+   q_vas:"Quelle douleur ressens-tu maintenant ?", vas_lo:"aucune douleur", vas_hi:"douleur maximale",
+   vas_tocca:"touche le curseur",
    invia:"ENVOYER", inviando:"Envoi...", err_completa:"Réponds à toutes les questions.",
    err_rete:"Pas de réseau : réessaie.", err_reg:"Erreur d'enregistrement, réessaie.",
    err_server:"Erreur du serveur : réessaie dans un instant.", ok_h:"Envoyée !", ok_p:"Wellness du jour enregistrée. Bon entraînement !",
@@ -315,6 +339,8 @@ const L = {
    q_umore:"¿Cuál es tu estado de ánimo?", umore_lo:"muy bajo", umore_hi:"excelente",
    q_medico:"¿Necesitas una evaluación del personal médico?", no:"No", si:"Sí",
    zona:"Zona del cuerpo", zona_ph:"Ej. isquio derecho",
+   q_vas:"¿Cuánto dolor sientes ahora?", vas_lo:"ningún dolor", vas_hi:"dolor máximo",
+   vas_tocca:"toca el cursor",
    invia:"ENVIAR", inviando:"Enviando...", err_completa:"Responde todas las preguntas.",
    err_rete:"Sin red: reintenta.", err_reg:"Error al registrar, reintenta.",
    err_server:"Error del servidor: reintenta en un momento.", ok_h:"¡Enviada!", ok_p:"Wellness de hoy registrada. ¡Buen entrenamiento!",
@@ -333,6 +359,8 @@ const $ = id => document.getElementById(id);
 const FACCE = ["\u{1F616}", "\u{1F641}", "\u{1F610}", "\u{1F642}", "\u{1F603}"];
 const risposte = {};
 let fisio = null;
+let vas = null;      // valore 0-10, null finche' il giocatore non tocca il cursore
+let vasOn = false;   // VAS accesa per questo giocatore (interruttore nel foglio)
 let ID = null;
 
 /* ---- lingua ---- */
@@ -350,6 +378,7 @@ function applicaLingua() {
   document.querySelectorAll("[data-t]").forEach(el => el.textContent = T(el.dataset.t));
   $("t-zona").placeholder = T("zona_ph");
   $("invia").textContent = T("invia");
+  disegnaVas();
   const nome = localStorage.getItem("wf_nome");
   if (nome) $("saluto").textContent = T("ciao") + " " + nome + " \u{1F44B}";
   $("dataoggi").textContent = new Date().toLocaleDateString(
@@ -385,12 +414,16 @@ function avvia() {
   if (!ID) { $("nt-why").textContent = "[nessun id nel link]"; mostra("no-token"); return; }
 
   const nomeCache = localStorage.getItem("wf_nome");
+  // VAS: subito com'era ieri, poi la risposta del server decide davvero
+  accendiVas(localStorage.getItem("wf_vas") === "1");
   if (nomeCache) pronto(nomeCache); else mostra("attesa");
 
   chiama(new URLSearchParams({ token: WEBHOOK_TOKEN, a: "chi", id: ID }),
     r => {
       if (r && r.ok) {
         localStorage.setItem("wf_nome", r.cognome);
+        localStorage.setItem("wf_vas", r.vas ? "1" : "0");
+        accendiVas(r.vas);
         if (!nomeCache) pronto(r.cognome);
         else $("saluto").textContent = T("ciao") + " " + r.cognome + " \u{1F44B}";
       } else {
@@ -401,7 +434,7 @@ function avvia() {
     why => { if (!nomeCache) { $("nt-why").textContent = "[rete: " + why + "]"; mostra("no-token"); } });
 }
 function esci(motivo) {
-  ["wf_id", "wf_nome", "wf_ans", "wf_last"].forEach(k => localStorage.removeItem(k));
+  ["wf_id", "wf_nome", "wf_ans", "wf_last", "wf_vas"].forEach(k => localStorage.removeItem(k));
   $("nt-why").textContent = "[" + motivo + "]";
   mostra("no-token"); scrollTo(0, 0);
 }
@@ -454,6 +487,25 @@ function durata() {
   el.classList.toggle("strana", min < 180 || min > 780);
 }
 
+/* ---- VAS dolore (solo se accesa per questo giocatore) ---- */
+function disegnaVas() {
+  const el = $("vas-val");
+  if (vas === null) {
+    el.innerHTML = "&mdash;<span class='tocca'>" + T("vas_tocca") + "</span>";
+    el.classList.remove("dato"); $("vas-r").classList.remove("dato");
+  } else {
+    el.textContent = vas + " / 10";
+    el.classList.add("dato"); $("vas-r").classList.add("dato");
+  }
+}
+$("vas-r").oninput = () => { vas = Number($("vas-r").value); disegnaVas(); progresso(); };
+function accendiVas(on) {
+  vasOn = !!on;
+  $("card-vas").style.display = vasOn ? "block" : "none";
+  if (!vasOn) vas = null;
+  disegnaVas(); progresso();
+}
+
 /* ---- staff medico ---- */
 $("f-no").onclick = () => { fisio = "No";
   $("f-no").classList.add("sel-no"); $("f-si").classList.remove("sel-si");
@@ -462,14 +514,16 @@ $("f-si").onclick = () => { fisio = "Si, Yes";
   $("f-si").classList.add("sel-si"); $("f-no").classList.remove("sel-no");
   $("zona-box").style.display = "block"; progresso(); };
 
-/* ---- barra di progresso (9 passi: 6 scale + 2 orari + si/no) ---- */
+/* ---- barra di progresso (9 passi: 6 scale + 2 orari + si/no; 10 con la VAS) ---- */
 function progresso() {
+  const tot = vasOn ? 10 : 9;
   let n = Object.keys(risposte).length;
   if ($("t-inizio").value) n++;
   if ($("t-fine").value) n++;
   if (fisio) n++;
-  $("conta").textContent = n + " / 9";
-  $("pieno").style.width = (n / 9 * 100) + "%";
+  if (vasOn && vas !== null) n++;
+  $("conta").textContent = n + " / " + tot;
+  $("pieno").style.width = (n / tot * 100) + "%";
 }
 
 /* ---- invio ---- */
@@ -481,7 +535,8 @@ function oraGoogle(hhmm) {
 $("invia").onclick = () => {
   const msg = $("f-msg");
   const manca = ["sonno", "energia", "fatica", "doms", "stress", "umore"].filter(k => !risposte[k]);
-  if (manca.length || !fisio || !$("t-inizio").value || !$("t-fine").value) {
+  if (manca.length || !fisio || !$("t-inizio").value || !$("t-fine").value ||
+      (vasOn && vas === null)) {
     msg.className = "msg err"; msg.textContent = T("err_completa"); return;
   }
   msg.className = "msg"; msg.textContent = "";
@@ -493,7 +548,8 @@ $("invia").onclick = () => {
       fine: oraGoogle($("t-fine").value), stress: risposte.stress,
       fatica: risposte.fatica, doms: risposte.doms, umore: risposte.umore,
       energia: risposte.energia, fisio: fisio,
-      regione: fisio === "No" ? "" : $("t-zona").value.trim()
+      regione: fisio === "No" ? "" : $("t-zona").value.trim(),
+      vas: (vasOn && vas !== null) ? vas : ""
     }),
     r => {
       $("invia").disabled = false; $("invia").textContent = T("invia");
@@ -504,7 +560,7 @@ $("invia").onclick = () => {
         // risposte del giorno: se riapre oggi le ritrova selezionate
         localStorage.setItem("wf_ans", JSON.stringify({
           d: new Date().toDateString(), r: risposte, f: fisio,
-          z: $("t-zona").value.trim() }));
+          z: $("t-zona").value.trim(), v: vas }));
         $("fatto-ora").textContent = new Date().toLocaleString("it-IT");
         mostra("fatto"); scrollTo(0, 0);
       } else if (r && r.error && /non riconosciuto/i.test(r.error)) {
@@ -559,6 +615,7 @@ function avviaPush(cognome) {
   });
   if (a.f === "No") $("f-no").onclick();
   else if (a.f) { $("f-si").onclick(); $("t-zona").value = a.z || ""; }
+  if (typeof a.v === "number") { $("vas-r").value = a.v; vas = a.v; disegnaVas(); }
 })();
 
 applicaLingua();
