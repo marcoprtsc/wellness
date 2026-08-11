@@ -456,7 +456,8 @@ function avvia() {
     why => { if (!nomeCache) { $("nt-why").textContent = "[rete: " + why + "]"; mostra("no-token"); } });
 }
 function esci(motivo) {
-  ["wf_id", "wf_nome", "wf_ans", "wf_last", "wf_vas"].forEach(k => localStorage.removeItem(k));
+  ["wf_id", "wf_nome", "wf_ans", "wf_last", "wf_vas", "wf_zona"]
+    .forEach(k => localStorage.removeItem(k));
   $("nt-why").textContent = "[" + motivo + "]";
   mostra("no-token"); scrollTo(0, 0);
 }
@@ -537,13 +538,23 @@ function accendiVas(on) {
   mostraVas();
 }
 
-/* ---- dolore in una zona (apre zona + scala) ---- */
+/* ---- dolore in una zona (apre zona + scala) ----------------------------
+   La zona dell'ultima segnalazione torna gia' scritta, ma solo se e' di
+   pochi giorni fa: a settembre non deve riproporre il polpaccio di luglio. */
+const ZONA_GIORNI = 7;
+function zonaRecente() {
+  let z; try { z = JSON.parse(localStorage.getItem("wf_zona")); } catch (e) { return ""; }
+  if (!z || !z.z || !z.t) return "";
+  return (Date.now() - z.t) < ZONA_GIORNI * 86400000 ? z.z : "";
+}
 $("d-no").onclick = () => { dolore = "No";
   $("d-no").classList.add("sel-no"); $("d-si").classList.remove("sel-si");
   $("zona-box").style.display = "none"; $("t-zona").value = ""; mostraVas(); };
 $("d-si").onclick = () => { dolore = "Si";
   $("d-si").classList.add("sel-si"); $("d-no").classList.remove("sel-no");
-  $("zona-box").style.display = "block"; mostraVas(); };
+  $("zona-box").style.display = "block";
+  if (!zonaScritta()) $("t-zona").value = zonaRecente();
+  mostraVas(); };
 $("t-zona").oninput = () => progresso();
 
 /* ---- staff medico ---- */
@@ -608,6 +619,11 @@ $("invia").onclick = () => {
         localStorage.setItem("wf_last", new Date().toDateString());
         localStorage.setItem("wf_t_inizio", $("t-inizio").value);
         localStorage.setItem("wf_t_fine", $("t-fine").value);
+        // ultima zona segnalata, con la data: domani la ritrova gia' scritta
+        // e conferma con un tocco invece di ridigitarla (vedi zonaRecente)
+        if (dolore === "Si" && zonaScritta())
+          localStorage.setItem("wf_zona", JSON.stringify(
+            { z: $("t-zona").value.trim(), t: Date.now() }));
         // risposte del giorno: se riapre oggi le ritrova selezionate
         localStorage.setItem("wf_ans", JSON.stringify({
           d: new Date().toDateString(), r: risposte, f: fisio, dol: dolore,
