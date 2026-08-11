@@ -547,9 +547,12 @@ function zonaRecente() {
   if (!z || !z.z || !z.t) return "";
   return (Date.now() - z.t) < ZONA_GIORNI * 86400000 ? z.z : "";
 }
+// "No" nasconde la zona ma NON la cancella: se ha toccato il pulsante per
+// sbaglio, tornando su "Si" ritrova quello che aveva scritto. Tanto la zona
+// viene inviata solo con dolore = "Si".
 $("d-no").onclick = () => { dolore = "No";
   $("d-no").classList.add("sel-no"); $("d-si").classList.remove("sel-si");
-  $("zona-box").style.display = "none"; $("t-zona").value = ""; mostraVas(); };
+  $("zona-box").style.display = "none"; mostraVas(); };
 $("d-si").onclick = () => { dolore = "Si";
   $("d-si").classList.add("sel-si"); $("d-no").classList.remove("sel-no");
   $("zona-box").style.display = "block";
@@ -627,7 +630,7 @@ $("invia").onclick = () => {
         // risposte del giorno: se riapre oggi le ritrova selezionate
         localStorage.setItem("wf_ans", JSON.stringify({
           d: new Date().toDateString(), r: risposte, f: fisio, dol: dolore,
-          z: $("t-zona").value.trim(), v: vas }));
+          z: dolore === "Si" ? $("t-zona").value.trim() : "", v: vas }));
         $("fatto-ora").textContent = new Date().toLocaleString("it-IT");
         mostra("fatto"); scrollTo(0, 0);
       } else if (r && r.error && /non riconosciuto/i.test(r.error)) {
