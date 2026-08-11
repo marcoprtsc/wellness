@@ -210,11 +210,14 @@
       <div class="estremi"><span data-t="umore_lo"></span><span data-t="umore_hi"></span></div>
     </div>
 
+    <!-- Dolore: domanda a se', staccata dalla richiesta di valutazione.
+         Chi ha un fastidio lo segnala anche se non vuole il fisio: nel report
+         finisce in "Zone segnalate senza richiesta di valutazione". -->
     <div class="card">
-      <div class="q">&#129658; <span data-t="q_medico"></span></div>
+      <div class="q">&#129657; <span data-t="q_dolore"></span></div>
       <div class="sino">
-        <button id="f-no" type="button" data-t="no"></button>
-        <button id="f-si" type="button" data-t="si"></button>
+        <button id="d-no" type="button" data-t="no"></button>
+        <button id="d-si" type="button" data-t="si"></button>
       </div>
       <div id="zona-box" style="display:none;margin-top:12px">
         <label class="mini" data-t="zona"></label>
@@ -222,15 +225,22 @@
       </div>
     </div>
 
-    <!-- VAS dolore: compare da sola a chi segnala una zona (risposta "Si" qui
-         sopra), e resta sempre visibile per chi ha l'interruttore acceso nella
-         colonna "vas" della scheda Giocatori. Sta dopo la zona: prima dove fa
-         male, poi quanto. -->
+    <!-- Scala del dolore: compare con la zona (prima dove, poi quanto).
+         Resta sempre visibile per chi ha l'interruttore acceso nella colonna
+         "vas" della scheda Giocatori. -->
     <div class="card" id="card-vas" style="display:none">
-      <div class="q">&#129657; <span data-t="q_vas"></span></div>
+      <div class="q">&#128200; <span data-t="q_vas"></span></div>
       <div id="vas-val">&mdash;</div>
       <input type="range" id="vas-r" min="0" max="10" step="1" value="0">
       <div class="estremi"><span data-t="vas_lo"></span><span data-t="vas_hi"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="q">&#129658; <span data-t="q_medico"></span></div>
+      <div class="sino">
+        <button id="f-no" type="button" data-t="no"></button>
+        <button id="f-si" type="button" data-t="si"></button>
+      </div>
     </div>
 
     <button id="invia"></button>
@@ -267,9 +277,11 @@ const L = {
    q_stress:"Quanto sei stressato?", stress_lo:"moltissimo", stress_hi:"per niente",
    q_umore:"Qual è il tuo umore?", umore_lo:"pessimo", umore_hi:"ottimo",
    q_medico:"Serve una valutazione da parte dello staff medico?", no:"No", si:"Sì",
+   q_dolore:"Avverti dolore in una zona del corpo?",
    zona:"Zona del corpo", zona_ph:"Es. flessore destro",
    q_vas:"Quanto dolore senti adesso?", vas_lo:"nessun dolore", vas_hi:"dolore massimo",
    vas_tocca:"tocca il cursore",
+   err_zona:"Indica la zona del corpo.",
    invia:"INVIA", inviando:"Invio...", err_completa:"Completa tutte le domande.",
    err_rete:"Rete assente: riprova.", err_reg:"Errore di registrazione, riprova.",
    err_server:"Errore del server: riprova tra poco.", ok_h:"Inviata!", ok_p:"Wellness di oggi registrata. Buon allenamento!",
@@ -285,9 +297,11 @@ const L = {
    q_stress:"How stressed are you?", stress_lo:"very stressed", stress_hi:"not at all",
    q_umore:"What's your mood?", umore_lo:"very low", umore_hi:"great",
    q_medico:"Do you need an assessment by the medical staff?", no:"No", si:"Yes",
+   q_dolore:"Do you feel pain in any part of your body?",
    zona:"Body area", zona_ph:"e.g. right hamstring",
    q_vas:"How much pain do you feel right now?", vas_lo:"no pain", vas_hi:"worst pain",
    vas_tocca:"touch the slider",
+   err_zona:"Please indicate the body area.",
    invia:"SUBMIT", inviando:"Sending...", err_completa:"Please answer every question.",
    err_rete:"No network: please retry.", err_reg:"Something went wrong, please retry.",
    err_server:"Server error: please try again shortly.", ok_h:"Sent!", ok_p:"Today's wellness has been recorded. Have a good session!",
@@ -303,9 +317,11 @@ const L = {
    q_stress:"Wie gestresst bist du?", stress_lo:"sehr", stress_hi:"gar nicht",
    q_umore:"Wie ist deine Stimmung?", umore_lo:"sehr schlecht", umore_hi:"sehr gut",
    q_medico:"Brauchst du eine Beurteilung durch das medizinische Personal?", no:"Nein", si:"Ja",
+   q_dolore:"Hast du Schmerzen in einem Körperbereich?",
    zona:"Körperregion", zona_ph:"z.B. rechter Beinbeuger",
    q_vas:"Wie stark sind deine Schmerzen jetzt?", vas_lo:"keine Schmerzen", vas_hi:"stärkste Schmerzen",
    vas_tocca:"Regler berühren",
+   err_zona:"Bitte gib den Körperbereich an.",
    invia:"SENDEN", inviando:"Senden...", err_completa:"Bitte alle Fragen beantworten.",
    err_rete:"Kein Netz: bitte erneut versuchen.", err_reg:"Fehler, bitte erneut versuchen.",
    err_server:"Serverfehler: bitte gleich erneut versuchen.", ok_h:"Gesendet!", ok_p:"Wellness von heute gespeichert. Gutes Training!",
@@ -321,9 +337,11 @@ const L = {
    q_stress:"À quel point es-tu stressé ?", stress_lo:"énormément", stress_hi:"pas du tout",
    q_umore:"Quelle est ton humeur ?", umore_lo:"très mauvaise", umore_hi:"excellente",
    q_medico:"As-tu besoin d'une évaluation du staff médical ?", no:"Non", si:"Oui",
+   q_dolore:"Ressens-tu une douleur à une zone du corps ?",
    zona:"Zone du corps", zona_ph:"Ex. ischio droit",
    q_vas:"Quelle douleur ressens-tu maintenant ?", vas_lo:"aucune douleur", vas_hi:"douleur maximale",
    vas_tocca:"touche le curseur",
+   err_zona:"Indique la zone du corps.",
    invia:"ENVOYER", inviando:"Envoi...", err_completa:"Réponds à toutes les questions.",
    err_rete:"Pas de réseau : réessaie.", err_reg:"Erreur d'enregistrement, réessaie.",
    err_server:"Erreur du serveur : réessaie dans un instant.", ok_h:"Envoyée !", ok_p:"Wellness du jour enregistrée. Bon entraînement !",
@@ -339,9 +357,11 @@ const L = {
    q_stress:"¿Cuánto estrés sientes?", stress_lo:"muchísimo", stress_hi:"nada",
    q_umore:"¿Cuál es tu estado de ánimo?", umore_lo:"muy bajo", umore_hi:"excelente",
    q_medico:"¿Necesitas una evaluación del personal médico?", no:"No", si:"Sí",
+   q_dolore:"¿Sientes dolor en alguna zona del cuerpo?",
    zona:"Zona del cuerpo", zona_ph:"Ej. isquio derecho",
    q_vas:"¿Cuánto dolor sientes ahora?", vas_lo:"ningún dolor", vas_hi:"dolor máximo",
    vas_tocca:"toca el cursor",
+   err_zona:"Indica la zona del cuerpo.",
    invia:"ENVIAR", inviando:"Enviando...", err_completa:"Responde todas las preguntas.",
    err_rete:"Sin red: reintenta.", err_reg:"Error al registrar, reintenta.",
    err_server:"Error del servidor: reintenta en un momento.", ok_h:"¡Enviada!", ok_p:"Wellness de hoy registrada. ¡Buen entrenamiento!",
@@ -360,6 +380,7 @@ const $ = id => document.getElementById(id);
 const FACCE = ["\u{1F616}", "\u{1F641}", "\u{1F610}", "\u{1F642}", "\u{1F603}"];
 const risposte = {};
 let fisio = null;
+let dolore = null;   // "Si"/"No" alla domanda sul dolore: apre zona e scala
 let vas = null;      // valore 0-10, null finche' il giocatore non tocca il cursore
 let vasOn = false;   // VAS accesa per questo giocatore (interruttore nel foglio)
 let ID = null;
@@ -491,9 +512,9 @@ function durata() {
 
 /* ---- VAS dolore ----------------------------------------------------------
    Si vede in due casi: interruttore acceso nel foglio per quel giocatore
-   (vasOn), oppure ha appena segnalato una zona ("Si" allo staff medico).
+   (vasOn), oppure ha appena detto di avere dolore in una zona.
    Chi risponde "No" non la vede e il valore torna vuoto.                    */
-function vasVisibile() { return vasOn || fisio === "Si, Yes"; }
+function vasVisibile() { return vasOn || dolore === "Si"; }
 function mostraVas() {
   const on = vasVisibile();
   $("card-vas").style.display = on ? "block" : "none";
@@ -516,21 +537,35 @@ function accendiVas(on) {
   mostraVas();
 }
 
+/* ---- dolore in una zona (apre zona + scala) ---- */
+$("d-no").onclick = () => { dolore = "No";
+  $("d-no").classList.add("sel-no"); $("d-si").classList.remove("sel-si");
+  $("zona-box").style.display = "none"; $("t-zona").value = ""; mostraVas(); };
+$("d-si").onclick = () => { dolore = "Si";
+  $("d-si").classList.add("sel-si"); $("d-no").classList.remove("sel-no");
+  $("zona-box").style.display = "block"; mostraVas(); };
+$("t-zona").oninput = () => progresso();
+
 /* ---- staff medico ---- */
 $("f-no").onclick = () => { fisio = "No";
   $("f-no").classList.add("sel-no"); $("f-si").classList.remove("sel-si");
-  $("zona-box").style.display = "none"; mostraVas(); };
+  progresso(); };
 $("f-si").onclick = () => { fisio = "Si, Yes";
   $("f-si").classList.add("sel-si"); $("f-no").classList.remove("sel-no");
-  $("zona-box").style.display = "block"; mostraVas(); };
+  progresso(); };
 
-/* ---- barra di progresso (9 passi: 6 scale + 2 orari + si/no; 10 con la VAS) ---- */
+/* ---- barra di progresso ------------------------------------------------
+   10 di base: 6 scale + 2 orari + dolore si/no + staff medico si/no.
+   Chi ha dolore ne ha 12: in piu' la zona e la scala 0-10.               */
+function zonaScritta() { return $("t-zona").value.trim() !== ""; }
 function progresso() {
-  const tot = vasVisibile() ? 10 : 9;
+  const tot = 10 + (dolore === "Si" ? 1 : 0) + (vasVisibile() ? 1 : 0);
   let n = Object.keys(risposte).length;
   if ($("t-inizio").value) n++;
   if ($("t-fine").value) n++;
+  if (dolore) n++;
   if (fisio) n++;
+  if (dolore === "Si" && zonaScritta()) n++;
   if (vasVisibile() && vas !== null) n++;
   $("conta").textContent = n + " / " + tot;
   $("pieno").style.width = (n / tot * 100) + "%";
@@ -545,9 +580,15 @@ function oraGoogle(hhmm) {
 $("invia").onclick = () => {
   const msg = $("f-msg");
   const manca = ["sonno", "energia", "fatica", "doms", "stress", "umore"].filter(k => !risposte[k]);
-  if (manca.length || !fisio || !$("t-inizio").value || !$("t-fine").value ||
+  if (manca.length || !fisio || !dolore || !$("t-inizio").value || !$("t-fine").value ||
       (vasVisibile() && vas === null)) {
     msg.className = "msg err"; msg.textContent = T("err_completa"); return;
+  }
+  // chi dice di avere dolore deve dire anche dove: allo staff medico non
+  // devono piu' arrivare segnalazioni con "zona non indicata"
+  if (dolore === "Si" && !zonaScritta()) {
+    msg.className = "msg err"; msg.textContent = T("err_zona");
+    $("t-zona").focus(); return;
   }
   msg.className = "msg"; msg.textContent = "";
   $("invia").disabled = true; $("invia").textContent = T("inviando");
@@ -558,7 +599,7 @@ $("invia").onclick = () => {
       fine: oraGoogle($("t-fine").value), stress: risposte.stress,
       fatica: risposte.fatica, doms: risposte.doms, umore: risposte.umore,
       energia: risposte.energia, fisio: fisio,
-      regione: fisio === "No" ? "" : $("t-zona").value.trim(),
+      regione: dolore === "Si" ? $("t-zona").value.trim() : "",
       vas: (vasVisibile() && vas !== null) ? vas : ""
     }),
     r => {
@@ -569,7 +610,7 @@ $("invia").onclick = () => {
         localStorage.setItem("wf_t_fine", $("t-fine").value);
         // risposte del giorno: se riapre oggi le ritrova selezionate
         localStorage.setItem("wf_ans", JSON.stringify({
-          d: new Date().toDateString(), r: risposte, f: fisio,
+          d: new Date().toDateString(), r: risposte, f: fisio, dol: dolore,
           z: $("t-zona").value.trim(), v: vas }));
         $("fatto-ora").textContent = new Date().toLocaleString("it-IT");
         mostra("fatto"); scrollTo(0, 0);
@@ -623,8 +664,13 @@ function avviaPush(cognome) {
     const b = v && card.querySelectorAll(".scala button")[v - 1];
     if (b) b.onclick();
   });
+  // "dol" manca nelle risposte salvate prima dell'11/08/2026: in quel caso
+  // la zona scritta vale come "aveva dolore"
+  const avevaDolore = a.dol ? a.dol === "Si" : !!(a.z && a.z.trim());
+  if (avevaDolore) { $("d-si").onclick(); $("t-zona").value = a.z || ""; }
+  else $("d-no").onclick();
   if (a.f === "No") $("f-no").onclick();
-  else if (a.f) { $("f-si").onclick(); $("t-zona").value = a.z || ""; }
+  else if (a.f) $("f-si").onclick();
   if (typeof a.v === "number" && vasVisibile()) {
     $("vas-r").value = a.v; vas = a.v; disegnaVas(); progresso();
   }
