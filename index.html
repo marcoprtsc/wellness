@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#006937">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <title>Venezia FC — Wellness</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -255,6 +256,9 @@
     <button id="rifai" data-t="modifica"></button>
   </div>
 
+  <!-- versione: serve a capire se il telefono ha ancora la pagina in cache -->
+  <div id="versione" style="text-align:center;font-size:.68rem;color:#bbb;margin:14px 0 4px"></div>
+
 </main>
 
 <script>
@@ -262,6 +266,9 @@
    CONFIGURAZIONE
    ============================================================ */
 const WEBHOOK_URL      = "https://script.google.com/macros/s/AKfycbw8aunwr_kFFzvww3RslF3qPVAypxHga18WrQ3l15J2tE4OJt1yyilFJl4uMAwZ9d1lrQ/exec";
+// Alzare a ogni pubblicazione: e' scritta in fondo alla pagina e dice subito
+// se il telefono sta ancora usando una versione vecchia dalla cache.
+const VERSIONE         = "11/08/2026 · 5";
 const WEBHOOK_TOKEN    = "veneziafc2627";
 const ONESIGNAL_APP_ID = "83d0de3e-a3ee-4a02-a784-cd234ff1e7aa";
 
@@ -695,6 +702,7 @@ function avviaPush(cognome) {
   }
 })();
 
+$("versione").textContent = "v " + VERSIONE;
 applicaLingua();
 avvia();
 </script>
